@@ -1,19 +1,15 @@
-name: Weekly Python Script Runner
+name: Run ArxivAutoJob Pipeline
 
 on:
-  # 手动触发
-  workflow_dispatch:
-  # 北京时间每周五凌晨3点触发（UTC时间前一天的19:00）
   schedule:
-    - cron: '0 19 * * 4'  # UTC时间周四19:00 = 北京时间周五03:00
-
-env:
-  API_KEY: ${{ secrets.API_KEY }}  # 从仓库Secret读取
+    # Runs every Friday at 8:00 PM Beijing Time (12:00 UTC)
+    - cron: '0 12 * * 5' 
+  workflow_dispatch: # Allows manual triggering from GitHub UI
 
 jobs:
-  run-script:
+  build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -21,32 +17,42 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'  # 指定您需要的Python版本
+        python-version: '3.x' # Use latest Python 3
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt  # 如果有requirements.txt
-        # 或者直接安装特定包
+        pip install -r requirements.txt
 
-    - name: Run Python script
+    - name: Set up environment variables
       run: |
-        python main.py  # 替换为您的脚本名称
+        echo "OPENAI_API_BASE=${{ secrets.OPENAI_API_BASE }}" >> $GITHUB_ENV
+        echo "OPENAI_MODEL=${{ secrets.MODEL_NAME }}" >> $GITHUB_ENV # Corrected to MODEL_NAME as per common practice
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+      # Ensure these secrets are configured in your GitHub repository settings
 
-    - name: Collect TXT files
-      run: |
-        # 创建收集目录
-        mkdir -p collected_files
-        # 复制所有txt文件（包括子目录）
-        cp *.md collected_files/
-        cp *.pdf collected_files/
-        cp *.txt collected_files/
-        # 显示收集结果
-        ls -l collected_files/
+    - name: Run ArxivAutoJob
+      run: python main.py
 
-    - name: Upload artifacts
+    - name: Upload all generated files as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: text-files
-        path: collected_files/
-        if-no-files-found: warn
+        name: papers
+        path: download/
+
+    - name: Prepare files for GitHub Pages
+      run: |
+        mkdir -p gh-pages-staging
+        cp download/rss.xml gh-pages-staging/
+        cp download/summary.md gh-pages-staging/
+        # Add a dummy hidden file to satisfy peaceiris/actions-gh-pages's internal cp command
+        touch gh-pages-staging/.nojekyll
+
+    - name: Deploy RSS and Summary to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main' # Only deploy from main branch
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./gh-pages-staging # Publish the prepared directory
+        keep_files: true # Keep existing files in gh-pages branch, only update changed ones
+        commit_message: "Update ArxivAutoJob RSS and Summary [skip ci]"
