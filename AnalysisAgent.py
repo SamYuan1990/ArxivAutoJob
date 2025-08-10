@@ -1,80 +1,86 @@
 from strands import Agent
 from strands.handlers.callback_handler import PrintingCallbackHandler
-from deepSeekmodel import DeepSeekModel
-from AnalysisResult import AnalysisResult, CommunicationMethod
+from AnalysisResult import AnalysisResult, CommunicationMethod, Sentence
 from typing import List
+from spo_score import spo_score
 
-import yaml
-import logging
-import os
+import re
 import json
 
-logging.basicConfig(
-    format="%(levelname)s | %(name)s | %(message)s", 
-    handlers=[logging.StreamHandler()]
-)
+class AnalysisAgent:
+    def __init__(self, config, model):
+        # Create an agent with tools from the strands-tools example tools package
+        # as well as our custom letter_counter tool
+        self.agent = Agent(
+            model=model,
+            callback_handler=PrintingCallbackHandler(),
+            system_prompt=(
+                config["analysis_instructions"]
+            )
+        )
 
-logging.getLogger("strands").setLevel(logging.DEBUG)
-
-model = DeepSeekModel(
-    api_key=os.environ["API_KEY"],
-    base_url="https://api.deepseek.com",
-    model_id="deepseek-chat",
-)
-
-with open("config.yaml", "r", encoding="utf-8") as f:
-     config = yaml.safe_load(f)
-
-# Create an agent with tools from the strands-tools example tools package
-# as well as our custom letter_counter tool
-agent = Agent(
-    model=model,
-    callback_handler=PrintingCallbackHandler(),
-    system_prompt=(
-        config["analysis_instructions"]
-    )
-)
-
-# Ask the agent a question that uses the available tools
-messages = [
-    "云原生时代中，Kubernetes 已成为资源管理的事实标准。",
-    "如今，在 AI 大模型蓬勃发展的背景下，基于 K8S 的 AI 基础设施面临哪些独特挑战？",
-    "本文将从计算、存储、网络、调度这四大核心要素出发，分析运行 AI 大模型的 K8s 集群与普通 K8s 集群的区别，探讨构建高效 AI on K8S 平台的核心竞争力。",
-    "大模型热潮兴起时，云原生体系已趋成熟，当前绝大多数AI基础设施都选择 Kubernetes 作为底层的资源管理平台。K8s 已在众多领域（大数据、互联网、生物医药、金融、游戏等）广泛应用。"
-]
-
-def process_messages(messages: List[str], agent):
-    results = []
-    for msg in messages:
-        print(f"\nProcessing message: {msg}")
-        
-        # 调用 agent 处理消息
-        response = agent(msg)
-        
-        # 打印基础统计信息
-        print(f"Total tokens: {response.metrics.accumulated_usage['totalTokens']}")
-        print(f"Execution time: {sum(response.metrics.cycle_durations):.2f} seconds")
-        print(f"Tools used: {list(response.metrics.tool_metrics.keys())}")
-        
-        try:
-            # 尝试将 response 转换为 AnalysisResult
-            data = json.loads(str(response))
-            result = AnalysisResult(**data)
+    def process_messages(self, messages: List[str]):
+        results = []
+        for msg in messages:
+            print(f"\nProcessing message: {msg}")
             
-            # 收集结果
-            results.append(result)
+            # 调用 agent 处理消息
+            response = self.agent(msg)
             
-            # 打印结构化结果
-            print("Analysis Result:")
-            print(result.model_dump_json(indent=2))
+            # 打印基础统计信息
+            print(f"Total tokens: {response.metrics.accumulated_usage['totalTokens']}")
+            print(f"Execution time: {sum(response.metrics.cycle_durations):.2f} seconds")
+            print(f"Tools used: {list(response.metrics.tool_metrics.keys())}")
             
-        except Exception as e:
-            print(f"Error processing message: {e}")
-            results.append(None)
+            try:
+                # 尝试将 response 转换为 AnalysisResult
+                data = json.loads(trim_json_output(str(response)))
+                result = AnalysisResult(**data)
+                print(result.Subject)
+                print(len(result.Subject))
+                score = spo_score(
+                        len(result.Subject),
+                        len(result.Predicate),
+                        len(result.Object),
+                        len(result.Attributive),
+                        len(result.Adverbial),
+                        len(result.Complement),
+                        len(result.Others)
+                                    )
+                # 收集结果
+                Current_Sentence = Sentence(
+                    origin_text=msg,
+                    AnalysisResult=data,
+                    SPO_Score=score,
+                    Emotional_intensity=result.Emotional_intensity,
+                    CommunicationMethods= result.CommunicationMethods
+                )
+                results.append(Current_Sentence)
+                
+                # 打印结构化结果
+                print("Analysis Result:")
+                print(result.model_dump_json(indent=2))
+                
+            except Exception as e:
+                print(f"Error processing message: {e}")
+                results.append(None)
+        
+        return results
+
+def trim_json_output(content):
+    """
+    智能处理可能包含```json标记的内容：
+    1. 如果内容被```json ... ```包裹，则提取内部JSON部分
+    2. 否则保留原始内容
+    """
+    # 匹配 ```json 开头和 ``` 结尾的模式（允许前后空白）
+    pattern = r'^\s*```json\s*\n?(.*?)\n?\s*```\s*$'
+    match = re.fullmatch(pattern, content, re.DOTALL)
     
-    return results
-
-analysis_results = process_messages(messages, agent)
+    if match:
+        # 提取json内容并去除首尾空白
+        return match.group(1).strip()
+    return content.strip()
 
 #response = agent(message)
 #print(response)
