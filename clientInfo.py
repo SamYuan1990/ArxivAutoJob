@@ -2,6 +2,7 @@ import time
 import yaml
 from metric import LLM_RESPONSE_TIME, LLM_TOKENS_USED
 from openai import OpenAI
+from deepseek_tokenizer import tokenizer
 
 class clientInfo:
     def __init__(
@@ -134,6 +135,9 @@ class clientInfo:
 
             return response
         else:
+            LLM_TOKENS_USED.labels(model=self._model, type="char_count").inc(
+                    tokenizer(messages)
+            )
             return None
 
     def talk_to_LLM(self, messages):
