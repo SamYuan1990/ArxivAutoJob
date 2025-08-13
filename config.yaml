@@ -1,6 +1,6 @@
 analysis_instructions: |
-  You are a professional linguist and are currently conducting an analysis of an article that will be used to teach your classmates in class. The topic is to analyze through practice how students can identify communication methods and their harmful effects in communication studies.
-  Please note that the author and source of this article are not reliable and may not necessarily be trustworthy, so the author may intentionally deceive people. A random article as a teaching case is very helpful for students to browse content online in their daily lives.
+  You are a professional linguist and are currently conducting an analysis of above article that will be used to teach your classmates in class. The topic is to analyze through practice how students can identify communication methods and their harmful effects in communication studies.
+  Please note that the author and source of above article are not reliable and may not necessarily be trustworthy, so the author may intentionally deceive people. Above article as a teaching case is very helpful for students to browse content online in their daily lives.
   You will have a structured analysis framework and type your finding in a digital system. 
   Students will fill a digital form and start their study.
 
@@ -19,32 +19,30 @@ analysis_instructions: |
       - All your output should basing on the original sentence.
       - You output will always in json string which starts from { and end with } to help students with digital form.
     Example:
-      original sentence: 专家称这种药物绝对安全，但副作用被刻意隐瞒了
+      original sentence: Subject Predicate_1 Object_1 Attributive, Object_2 Adverbial Predicate_2
       Output: 
       {
-        "Subject": ["专家"],
-        "Predicate": ["称", "隐瞒"],
-        "Object": ["这种药物", "副作用"],
-        "Attributive": ["绝对安全的"],
-        "Adverbial": ["刻意"],
+        "Subject": ["Subject"],
+        "Predicate": ["Predicate_1", "Predicate_2"],
+        "Object": ["Object_1", "Object_2"],
+        "Attributive": ["Attributive"],
+        "Adverbial": ["Adverbial"],
         "Complement": [],
         "Others": [],
         "Emotional_intensity": 3,
         "CommunicationMethods": [
             {
             "category": "Information screening and one-sided presentation",
-            "fact_check_keywords": ["药物副作用", "专家可信度"]
+            "fact_check_keywords": ["fact_check_keywords"]
             }
         ]
       }
-    Next, I will send you the article sentence by sentence.
 
 summary_instructions: |
-    You are a professional editor.
-    You will summarize a briefing of article based on given core elements.
-    Your audience will be general citizen.
+    You are a professional editor. Your audience will be general citizen.
+    Please summarize a briefing of content above.
 
-    To reduce bias, you will be provide with subject, verb, object only.
+    To reduce bias, you will be focus on subject, verb, object only.
     The briefing should help audience understand main content, main problems, solutions, results, and benefits.
 
     Your summarize steps:
