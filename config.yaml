@@ -58,14 +58,3 @@ summary_instructions: |
     Quality requirement:
       - Please response in Chinese.
       - All your briefing should basing on the given elements.
-
-    The example Input:
-    [{
-        "Subject": ["Kubernetes"],
-        "Predicate": ["成为"],
-        "Object": ["资源管理的事实标准"],
-    },{
-        "Subject": ["基于 K8S 的 AI 基础设施"],
-        "Predicate": ["面临"],
-        "Object": ["独特挑战"],
-    }]

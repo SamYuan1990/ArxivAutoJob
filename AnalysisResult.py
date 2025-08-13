@@ -32,15 +32,15 @@ def generate_markdown_output(sentence: Sentence) -> str:
     
     # 标记Subject
     for subj in analysis.Subject:
-        marked_text = marked_text.replace(subj, f'<font color="red">{subj}</font>')
+        marked_text = marked_text.replace(subj, f'<span style="color: #4589ff;">{subj}</span>')
     
     # 标记Predicate
     for pred in analysis.Predicate:
-        marked_text = marked_text.replace(pred, f'<font color="red">{pred}</font>')
+        marked_text = marked_text.replace(pred, f'<span style="color: #4589ff;">{pred}</span>')
     
     # 标记Object
     for obj in analysis.Object:
-        marked_text = marked_text.replace(obj, f'<font color="red">{obj}</font>')
+        marked_text = marked_text.replace(obj, f'<span style="color: #4589ff;">{obj}</span>')
     
     # 构建传播学方法部分
     comm_methods = []
@@ -50,9 +50,9 @@ def generate_markdown_output(sentence: Sentence) -> str:
     
     # 组合最终Markdown
     markdown = (
-        f"{marked_text}\n"
         f"<details>\n"
-        f"  <summary>SPO: {sentence.SPO_Score}, 情感: {sentence.Emotional_intensity}</summary>\n\n"
+        f"  <summary>{marked_text}</summary>\n\n"
+        f"  SPO: {sentence.SPO_Score}, 情感: {sentence.Emotional_intensity} \n"
         f"  **传播学方法**:\n"
         f"  > " + "\n  > ".join(comm_methods) + "\n"
         f"</details>"
@@ -68,7 +68,7 @@ def write_results_to_markdown(summary_result: str, analysis_results: list, outpu
     :param analysis_results: 包含Sentence对象的列表
     :param output_file: 输出文件名，默认为"test123.md"
     """
-    with open(output_file, 'w', encoding='utf-8') as f:
+    with open(output_file, 'a', encoding='utf-8') as f:
         # 写入摘要部分
         f.write("# 分析摘要\n")
         f.write(summary_result)
