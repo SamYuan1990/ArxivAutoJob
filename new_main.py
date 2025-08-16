@@ -2,43 +2,33 @@ from clientInfo import clientInfo
 from metric import print_metrics
 from AnalysisAgent import AnalysisAgent
 from AnalysisResult import write_results_to_markdown
+from processArticle import TextToParagraphs
 
 import os
 import re
 import concurrent.futures
 
 def process_paragraph(clientInfo, paragraph):
-    AnalysisAgentInstance_1 = AnalysisAgent(clientInfo)
-    AnalysisAgentInstance_1.set_msg(paragraph)
-    analysis_results = AnalysisAgentInstance_1.analysis()
-    summary_result=AnalysisAgentInstance_1.summary()
-    return {
-        "summary_result": str(summary_result),
-        "analysis_result": analysis_results,
-    }
-
+    print(paragraph)
+    if paragraph.need_Analysis:
+        AnalysisAgentInstance_1 = AnalysisAgent(clientInfo)
+        AnalysisAgentInstance_1.set_msg(paragraph)
+        analysis_results = AnalysisAgentInstance_1.analysis()
+        summary_result=AnalysisAgentInstance_1.summary()
+        return {
+                "summary_result": str(summary_result),
+                "analysis_result": analysis_results,
+            }
+    else:
+        return {
+                "summary_result": "",
+                "analysis_result": [paragraph],
+            }
 
 def process_preserve_order(clientInfo, input_text):
-    paragraphs = re.split(r'(^#+\s+.+$)', input_text, flags=re.MULTILINE)
-    paragraphs = [paragraph.strip() for paragraph in paragraphs if paragraph.strip()]
-
-    merged_paragraphs = []
-    i = 0
-    n = len(paragraphs)
-
-    while i < n:
-        current = paragraphs[i]
-        # If current paragraph is too short and not the last one
-        if len(current) < 100 and i < n - 1:
-            # Merge with next paragraph
-            merged = current + " " + paragraphs[i+1]
-            merged_paragraphs.append(merged)
-            i += 2  # Skip next paragraph since we merged it
-        else:
-            merged_paragraphs.append(current)
-            i += 1
-    paragraphs = merged_paragraphs
+    paragraphs = TextToParagraphs(input_text)
     # 使用线程池并发处理
+    print(len(paragraphs))
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         # 提交任务并保留原始索引
         futures = {
@@ -65,10 +55,12 @@ if __name__ == "__main__":
     )
     LLM_Client.show_config()
 
-    file_name = "LLM"
+    #file_name = "2507.21046v3"
+    file_name = "laomutest"
     with open(file_name+".md", 'r', encoding='utf-8') as file:
         input_text = file.read()
     processed_data = process_preserve_order(LLM_Client, input_text.strip())
+    print("start file output writing")
     for data in processed_data:
         write_results_to_markdown(data['summary_result'],
                                   data['analysis_result'],

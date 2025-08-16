@@ -1,4 +1,4 @@
-from typing import List
+from typing import Optional, List
 from pydantic import BaseModel
 from enum import Enum
 
@@ -19,17 +19,23 @@ class AnalysisResult(BaseModel):
 
 class Sentence(BaseModel):
     origin_text: str
-    AnalysisResult: AnalysisResult
-    Emotional_intensity: int
-    SPO_Score: float
-    CommunicationMethods: List[CommunicationMethod]
+    need_Analysis: Optional[bool] = None
+    AnalysisResult: Optional[AnalysisResult] = None
+    Emotional_intensity: Optional[int] = None
+    SPO_Score: Optional[float] = None
+    CommunicationMethods: Optional[List[CommunicationMethod]] = None
 
 
 def generate_markdown_output(sentence: Sentence) -> str:
     # 处理红色标记的成分
+    print(sentence.origin_text)
+    if not sentence.need_Analysis:
+        return sentence.origin_text
+
+    print(sentence)
     marked_text = sentence.origin_text
     analysis = sentence.AnalysisResult
-    
+    print(analysis)
     # 标记Subject
     for subj in analysis.Subject:
         marked_text = marked_text.replace(subj, f'<span style="color: #4589ff;">{subj}</span>')

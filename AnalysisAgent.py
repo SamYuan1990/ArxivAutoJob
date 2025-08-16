@@ -13,7 +13,7 @@ class AnalysisAgent:
         self.messages = []
     def set_msg(self, message): 
         self.msg = message
-        self.messages = [{"role": "system", "content": message}]
+        self.messages = [{"role": "system", "content": message.origin_text}]
 
     def analysis(self):
         results = []
@@ -39,18 +39,15 @@ class AnalysisAgent:
                         len(result.Others)
                                     )
                 # 收集结果
-                Current_Sentence = Sentence(
-                    origin_text=self.msg,
-                    AnalysisResult=data,
-                    SPO_Score=score,
-                    Emotional_intensity=result.Emotional_intensity,
-                    CommunicationMethods= result.CommunicationMethods
-                )
-                results.append(Current_Sentence)
+                self.msg.AnalysisResult = result
+                self.msg.SPO_Score = score
+                self.msg.Emotional_intensity=result.Emotional_intensity
+                self.msg.CommunicationMethods=result.CommunicationMethods
+                results.append(self.msg)
                 
                 # 打印结构化结果
-                print("Analysis Result:")
-                print(result.model_dump_json(indent=2))
+                #print("Analysis Result:")
+                #print(result.model_dump_json(indent=2))
                 
         except Exception as e:
             print(f"Error processing message: {e}")
