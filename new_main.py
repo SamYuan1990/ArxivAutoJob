@@ -14,16 +14,10 @@ def process_paragraph(clientInfo, paragraph):
         AnalysisAgentInstance_1 = AnalysisAgent(clientInfo)
         AnalysisAgentInstance_1.set_msg(paragraph)
         analysis_results = AnalysisAgentInstance_1.analysis()
-        summary_result=AnalysisAgentInstance_1.summary()
-        return {
-                "summary_result": str(summary_result),
-                "analysis_result": analysis_results,
-            }
+        summary_result = AnalysisAgentInstance_1.summary()
+        return summary_result
     else:
-        return {
-                "summary_result": "",
-                "analysis_result": [paragraph],
-            }
+        return paragraph
 
 def process_preserve_order(clientInfo, input_text):
     paragraphs = TextToParagraphs(input_text)
@@ -62,8 +56,7 @@ if __name__ == "__main__":
     processed_data = process_preserve_order(LLM_Client, input_text.strip())
     print("start file output writing")
     for data in processed_data:
-        write_results_to_markdown(data['summary_result'],
-                                  data['analysis_result'],
+        write_results_to_markdown(data,
                                   file_name+"_result.md"
                                   )
     print_metrics()

@@ -16,7 +16,7 @@ class AnalysisAgent:
         self.messages = [{"role": "system", "content": message.origin_text}]
 
     def analysis(self):
-        results = []
+        #results = []
         messages = []
         messages.append(self.messages[0])
         messages.append({"role": "user", "content": self.LLM_Client.get_config()["analysis_instructions"]})
@@ -43,17 +43,16 @@ class AnalysisAgent:
                 self.msg.SPO_Score = score
                 self.msg.Emotional_intensity=result.Emotional_intensity
                 self.msg.CommunicationMethods=result.CommunicationMethods
-                results.append(self.msg)
+                #results.append(self.msg)
                 
                 # 打印结构化结果
                 #print("Analysis Result:")
                 #print(result.model_dump_json(indent=2))
                 
         except Exception as e:
-            print(f"Error processing message: {e}")
-            results.append(None)
+            print(f"Error processing message: {e}")            
         
-        return results
+        return self.msg
 
     def summary(self):
         messages = []
@@ -61,8 +60,8 @@ class AnalysisAgent:
         messages.append(
             {"role": "user", "content": self.LLM_Client.get_config()["summary_instructions"]
         })
-        summary_response = self.LLM_Client.talk_to_LLM(messages)
-        return summary_response.choices[0].message.content
+        self.msg.summary = self.LLM_Client.talk_to_LLM(messages).choices[0].message.content
+        return self.msg
 
 #    def summary(self):
 #        self.messages.append(
