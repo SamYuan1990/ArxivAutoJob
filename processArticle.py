@@ -1,6 +1,8 @@
-import re
 from AnalysisResult import Sentence
 from deepseek_tokenizer import tokenizer
+
+import logging
+import re
 
 def TextToParagraphs(input_text):
     pattern = r'(^#+\s+.+$|^\*\*.+\*\*|^!\[.*\]\(.+\)$)'
@@ -10,7 +12,7 @@ def TextToParagraphs(input_text):
     merged_paragraphs = []
     for i, current in enumerate(paragraphs):
         if current.startswith('![') and current.endswith(')'):
-            print("picture don't need analysis with text only LLM")
+            logging.info("picture don't need analysis with text only LLM")
             merged_paragraphs.append(
                 Sentence(
                     origin_text=current,
@@ -22,7 +24,7 @@ def TextToParagraphs(input_text):
         ref_pattern = r'^#{1,6}\s*\**References?\b'
         match = re.search(ref_pattern, current, flags=re.IGNORECASE)
         if match:
-            print("reference don't need analysis with text only LLM")
+            logging.info("reference don't need analysis with text only LLM")
             merged_paragraphs.append(
                 Sentence(
                     origin_text=current,
@@ -34,7 +36,7 @@ def TextToParagraphs(input_text):
         pic_pattern = r'^Figure\b[\s:]*\d+[\s:]*.*'  # 匹配 "Figure 1:" 或 "FIGURE 2 -" 等格式
         match = re.search(pic_pattern, current, flags=re.IGNORECASE)
         if match:
-            print("picture description need analysis with text only LLM")
+            logging.info("picture description need analysis with text only LLM")
             merged_paragraphs.append(
                 Sentence(
                     origin_text=current,
@@ -46,7 +48,7 @@ def TextToParagraphs(input_text):
         contents_pattern = r'(?:\. ){6,}\.?'  # 匹配7个或更多的连续点
         match = re.search(contents_pattern, current)
         if match:
-            print("Content need analysis with text only LLM")
+            logging.info("Content need analysis with text only LLM")
             merged_paragraphs.append(
                 Sentence(
                     origin_text=current,
@@ -56,7 +58,7 @@ def TextToParagraphs(input_text):
             continue
 
         if tokenizer(current) < 50:
-            print("Skip analysis within 50 words")
+            logging.info("Skip analysis within 50 words")
             merged_paragraphs.append(
                 Sentence(
                     origin_text=current,
@@ -65,7 +67,7 @@ def TextToParagraphs(input_text):
             )            
             continue
 
-        print("Defualt analysis")
+        logging.info("Defualt analysis")
         merged_paragraphs.append(
                 Sentence(
                     origin_text=current,

@@ -3,13 +3,15 @@ from metric import print_metrics
 from AnalysisAgent import AnalysisAgent
 from AnalysisResult import write_results_to_markdown
 from processArticle import TextToParagraphs
+from ExpiringDictStorage import ExpiringDictStorage
 
 import os
 import re
 import concurrent.futures
+import logging
 
 def process_paragraph(clientInfo, paragraph):
-    print(paragraph)
+    logging.info(paragraph)
     if paragraph.need_Analysis:
         AnalysisAgentInstance_1 = AnalysisAgent(clientInfo)
         AnalysisAgentInstance_1.set_msg(paragraph)
@@ -22,7 +24,7 @@ def process_paragraph(clientInfo, paragraph):
 def process_preserve_order(clientInfo, input_text):
     paragraphs = TextToParagraphs(input_text)
     # 使用线程池并发处理
-    print(len(paragraphs))
+    logging.info(len(paragraphs))
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         # 提交任务并保留原始索引
         futures = {
@@ -41,11 +43,20 @@ def process_preserve_order(clientInfo, input_text):
     return results
 
 if __name__ == "__main__":
+
+    logging.basicConfig(
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        level=logging.INFO
+    )
+    storage = ExpiringDictStorage(expiry_days=7)
+
     LLM_Client = clientInfo(
         api_key=os.getenv("api_key"),
         base_url=os.getenv("base_url", "https://api.deepseek.com"),
         model=os.getenv("model", "deepseek-chat"),
         dryRun=os.getenv("dryRun", False),
+        local_cache=storage,
+        usecache=os.getenv("usecache", True),
     )
     LLM_Client.show_config()
 
@@ -54,7 +65,7 @@ if __name__ == "__main__":
     with open(file_name+".md", 'r', encoding='utf-8') as file:
         input_text = file.read()
     processed_data = process_preserve_order(LLM_Client, input_text.strip())
-    print("start file output writing")
+    logging.info("start file output writing")
     for data in processed_data:
         write_results_to_markdown(data,
                                   file_name+"_result.md"

@@ -1,5 +1,8 @@
 import time
 import yaml
+import logging
+import hashlib
+
 from metric import LLM_RESPONSE_TIME, LLM_TOKENS_USED
 from openai import OpenAI
 from deepseek_tokenizer import tokenizer
@@ -10,6 +13,8 @@ class clientInfo:
         api_key=None,
         base_url="https://api.example.com",
         model="gpt-4",
+        local_cache=None,
+        usecache=True,
         dryRun=False,
     ):
         """
@@ -24,6 +29,8 @@ class clientInfo:
         self._api_key = api_key
         self._base_url = base_url
         self._model = model
+        self._local_cache = local_cache
+        self._usecache = usecache
         with open("config.yaml", "r", encoding="utf-8") as f:
             self._config = yaml.safe_load(f)
         # 鲁棒性处理dryRun参数
@@ -57,11 +64,10 @@ class clientInfo:
 
     def get_legal_info(self):
         return (
-            "Disclaimers: This content is powered by i18n-agent-action with LLM service "
+            "Disclaimers: This content is powered by LLM service "
             + self._base_url
             + " with model "
             + self._model
-            + ", for some reason, (for example, we are not native speaker) we use LLM to provide this translate for you. If you find any corrections, please file an issue or raise a PR back to github, and switch back to default language."
         )
 
     def get_config(self):
@@ -70,13 +76,22 @@ class clientInfo:
     # 可选：添加一个显示所有配置的方法
     def show_config(self):
         """显示当前配置"""
-        print("API Client Configuration:")
-        print(f"  Base URL: {self._base_url}")
-        print(f"  Model: {self._model}")
-        print(f"  Dry Run: {self._dryRun}")
+        logging.info("API Client Configuration:")
+        logging.info(f"  Base URL: {self._base_url}")
+        logging.info(f"  Model: {self._model}")
+        logging.info(f"  Dry Run: {self._dryRun}")
+        logging.info(f"  Cache: {self._usecache}")
 
     def talk(self, messages, use_json=False):
-        print(f"Request to LLM - Messages: {messages}")
+        if self._usecache:
+            logging.info(f"Checking cache for Messages: {messages}")
+            # todo
+            key = hashlib.sha256(str(messages).encode('utf-8')).hexdigest()
+            if key in self._local_cache:
+                return self._local_cache.get(key)
+        # return 
+
+        logging.info(f"Request to LLM - Messages: {messages}")
         if not self._dryRun:
             start_time = time.time()
 
@@ -95,7 +110,11 @@ class clientInfo:
             response = self._client.chat.completions.create(**request_params)
             duration = time.time() - start_time
             LLM_RESPONSE_TIME.observe(duration)
-
+            # Add into cache
+            if self._usecache:
+                #todo
+                key = hashlib.sha256(str(messages).encode('utf-8')).hexdigest()
+                self._local_cache[key] = response
             # Handle token usage metrics
             if response.usage:
                 # If we have usage data, use accurate values

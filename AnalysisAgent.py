@@ -4,6 +4,7 @@ from typing import List
 from spo_score import spo_score
 
 import json
+import logging
 
 class AnalysisAgent:
     def __init__(self, LLM_Client):
@@ -22,13 +23,11 @@ class AnalysisAgent:
         messages.append({"role": "user", "content": self.LLM_Client.get_config()["analysis_instructions"]})
         response = self.LLM_Client.talk_to_LLM_Json(messages)
         resp_answer = response.choices[0].message.content
-        print(resp_answer)
+        logging.info(str(resp_answer))
         try:
                 # 尝试将 response 转换为 AnalysisResult
                 data = json.loads(str(resp_answer))
                 result = AnalysisResult(**data)
-                print(result.Subject)
-                print(len(result.Subject))
                 score = spo_score(
                         len(result.Subject),
                         len(result.Predicate),
@@ -50,7 +49,7 @@ class AnalysisAgent:
                 #print(result.model_dump_json(indent=2))
                 
         except Exception as e:
-            print(f"Error processing message: {e}")            
+            logging.info(f"Error processing message: {e}")            
         
         return self.msg
 
