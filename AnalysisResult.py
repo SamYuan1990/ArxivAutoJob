@@ -86,33 +86,3 @@ def write_results_to_markdown(sentence: Sentence, output_file: str = "test123.md
                 #f.write(f"## 句子 {i}\n")
             f.write(markdown_output)
             f.write("\n\n")
-
-#test_sentence = Sentence(
-#    origin_text="苹果公司发布了新款iPhone",
-#    AnalysisResult=AnalysisResult(
-#        Subject=["苹果公司"],
-#        Predicate=["发布"],
-#        Object=["新款iPhone"],
-#        Attributive=["新款"],
-#        Adverbial=[],
-#        Complement=[],
-#        Others=[],
-#        Emotional_intensity=3,
-#        CommunicationMethods=[],
-#    ),
-#    Emotional_intensity=3,
-#    SPO_Score=5.5,
-#    CommunicationMethods=[
-#        CommunicationMethod(
-#            category="科技产品发布",
-#            fact_check_keywords=["iPhone", "发布会"]
-#        ),
-#        CommunicationMethod(
-#            category="品牌营销",
-#            fact_check_keywords=["苹果", "市场营销"]
-#        )
-#    ]
-#)
-
-# 生成并打印Markdown
-#print(generate_markdown_output(test_sentence))
