@@ -4,8 +4,8 @@ on:
   # 手动触发
   workflow_dispatch:
   # 北京时间每周五凌晨3点触发（UTC时间前一天的19:00）
-  schedule:
-    - cron: '0 19 * * 4'  # UTC时间周四19:00 = 北京时间周五03:00
+  #schedule:
+  #  - cron: '0 19 * * 4'  # UTC时间周四19:00 = 北京时间周五03:00
 
 env:
   API_KEY: ${{ secrets.API_KEY }}  # 从仓库Secret读取

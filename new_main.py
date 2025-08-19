@@ -25,7 +25,7 @@ def process_preserve_order(clientInfo, input_text):
     paragraphs = TextToParagraphs(input_text)
     # 使用线程池并发处理
     logging.info(len(paragraphs))
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         # 提交任务并保留原始索引
         futures = {
             executor.submit(process_paragraph, clientInfo, paragraph): idx
@@ -43,7 +43,7 @@ def process_preserve_order(clientInfo, input_text):
     return results
 
 if __name__ == "__main__":
-
+    # system init
     logging.basicConfig(
         format='%(asctime)s - %(levelname)s - %(message)s',
         level=logging.INFO
@@ -60,11 +60,16 @@ if __name__ == "__main__":
     )
     LLM_Client.show_config()
 
+    #data prepare phase
     #file_name = "2507.21046v3"
     file_name = "laomutest"
     with open(file_name+".md", 'r', encoding='utf-8') as file:
         input_text = file.read()
+
+    #data process phase
     processed_data = process_preserve_order(LLM_Client, input_text.strip())
+    
+    #data output phase
     logging.info("start file output writing")
     for data in processed_data:
         write_results_to_markdown(data,
