@@ -11,6 +11,16 @@ def TextToParagraphs(input_text):
 
     merged_paragraphs = []
     for i, current in enumerate(paragraphs):
+        if tokenizer(current) < 50:
+            logging.info("Skip analysis within 50 words")
+            merged_paragraphs.append(
+                Sentence(
+                    origin_text=current,
+                    need_Analysis=False,
+                )
+            )            
+            continue
+
         if current.startswith('![') and current.endswith(')'):
             logging.info("picture don't need analysis with text only LLM")
             merged_paragraphs.append(
@@ -33,18 +43,6 @@ def TextToParagraphs(input_text):
             )
             break
 
-        pic_pattern = r'^Figure\b[\s:]*\d+[\s:]*.*'  # 匹配 "Figure 1:" 或 "FIGURE 2 -" 等格式
-        match = re.search(pic_pattern, current, flags=re.IGNORECASE)
-        if match:
-            logging.info("picture description need analysis with text only LLM")
-            merged_paragraphs.append(
-                Sentence(
-                    origin_text=current,
-                    need_Analysis=True,
-                )
-            )
-            continue
-
         contents_pattern = r'(?:\. ){6,}\.?'  # 匹配7个或更多的连续点
         match = re.search(contents_pattern, current)
         if match:
@@ -57,14 +55,16 @@ def TextToParagraphs(input_text):
             )
             continue
 
-        if tokenizer(current) < 50:
-            logging.info("Skip analysis within 50 words")
+        pic_pattern = r'^(?:Figure|Table)\b[\s:]*\d+[\s:]*.*'   # 匹配 "Figure 1:" 或 "Table 2 -" 等格式
+        match = re.search(pic_pattern, current, flags=re.IGNORECASE)
+        if match:
+            logging.info("picture or table description need analysis with text only LLM")
             merged_paragraphs.append(
                 Sentence(
                     origin_text=current,
-                    need_Analysis=False,
+                    need_Analysis=True,
                 )
-            )            
+            )
             continue
 
         logging.info("Defualt analysis")
@@ -76,23 +76,3 @@ def TextToParagraphs(input_text):
             )
 
     return merged_paragraphs
-
-#def print_first_10_words(strings_array):
-#    for i, sentences in enumerate(strings_array, 1):
-        # 分割字符串为单词列表
-#        if sentences.need_Analysis:
-#            words = sentences.origin_text.split()
-            # 取前10个单词（如果不足10个则取全部）
-#            first_10 = words[:10]
-            # 将单词列表重新组合成字符串
-#            result = ' '.join(first_10) + '\t' + str(len(words)) 
-            # 打印结果（带序号）
-#            print(f"{i}. {result}")
-
-
-#file_name = "LLM"
-#file_name="2507.21046v3"
-#with open(file_name+".md", 'r', encoding='utf-8') as file:
-#        input_text = file.read()
-
-#print_first_10_words(TextToParagraphs(input_text))

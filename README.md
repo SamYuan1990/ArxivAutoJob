@@ -2,6 +2,34 @@
 This repo just collect arxiv paper with [arxiv_mcp_project](https://github.com/blazickjp/arxiv-mcp-server) as a daily job in github archive.
 
 ## Update
+> 2025-08-19:
+If fact check leave to SEO, then we will never achieve the facts of fact check.
+So... leave fact check to audience themself.
+
+For any article, we just 
+- decouple, Subject, Predicate and Object with Attributive, Adverbial and Complement and others.
+- For fact in the article part, we try to re-create the facts from Subject, Predicate and Object
+- And for this, we can ask question as if numbers or examples are validate or not?
+
+- We re-create author's opinion from Attributive, Adverbial and Complement and others.
+- And for this, we can filter out opinions as why I need your opinion? And see I am in what kind of environment?
+- We also need be aware of sales/marketing articles, so ...
+
+- To make self evaluate for audience, we should have sample in prompts.
+
+But the question is, what's content should pass from paragraph one to paragraph two? as dynamic prompt parts? for now we just run fill in the middle approach.
+
+Maybe
+- Analysis article.
+- Fact checks todo list.
+- data visualization for different paragraph.
+
+For weekly or month analysis
+- Fact checks behaviors.
+- 3D word cloud for data visualization.
+- A suggestion to break information cocoon.
+- Metadata, or user's own Glossary.
+
 > 2025-08-04:
 I found a new idea to analysis the content.
 ```
