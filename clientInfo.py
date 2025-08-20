@@ -30,7 +30,12 @@ class clientInfo:
         self._base_url = base_url
         self._model = model
         self._local_cache = local_cache
-        self._usecache = usecache
+        if isinstance(usecache, str):
+            self._usecache = usecache.lower() == "true"
+        elif isinstance(usecache, int):
+            self._usecache = bool(usecache)
+        else:
+            self._usecache = bool(usecache)
         with open("config.yaml", "r", encoding="utf-8") as f:
             self._config = yaml.safe_load(f)
         # 鲁棒性处理dryRun参数
