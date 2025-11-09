@@ -41,14 +41,18 @@ jobs:
       run: |
         cd arxiv-3d-visualization
         npm run build
-        
+
+    - name: Move build directory to root
+      run: |
+        mv ./arxiv-3d-visualization/build ./build
+
     - name: Setup Pages
       uses: actions/configure-pages@v3
       
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./arxiv-3d-visualization/build
+        path: ./build
 
   deploy:
     environment:
@@ -65,4 +69,3 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v3
-      
