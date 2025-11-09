@@ -10,6 +10,7 @@ import base64
 import arxiv
 from utils import update_csv
 from fetchlatexcontent import extract_latex_fields
+from agent import analysis
 
 def ToBase64(file):
     with open(file, 'rb') as fileObj:
@@ -68,7 +69,7 @@ def get_paper_info_from_arxiv(arxiv_id):
         print(f"通过arxiv库获取论文信息失败 {arxiv_id}: {e}")
         return None
 
-def download_arxiv_papers_from_csv(csv_file_path, output_base="data"):
+def download_arxiv_papers_from_csv(csv_file_path, client, output_base="data"):
     """
     从CSV文件读取论文编码并下载LaTeX版本
     
@@ -176,9 +177,26 @@ def download_arxiv_papers_from_csv(csv_file_path, output_base="data"):
                     update_csv(csv_file_path, arxiv_id, "downloaded", "True")
                     # 使用
                     paper_data = extract_latex_fields("data/"+arxiv_id+"/content")
-                    print(paper_data)
-                    update_csv(csv_file_path, arxiv_id, "title", paper_data['title'])
+                    print('''
+                    please help analysis the papaer from paper's title, abstract, introduction and conclusions.
+I need you give me position_index value and position_index,position_index_comments,initiative_index,initiative_index_comments in json format.
+The define of position_index is where the paper major discussion about, it's value of training, post training, prompt or single agent, external data mgr or multiple agents.
+For example
+ - an arch like RNN or transformer is training.
+ - RL process like DeepSeek GPRO is post training.
+ - Prompt eng skill like ReAct is prompt or single agent.
+ - RAG, Memory mgr, tool call or MCP is external data mgr
+ - A2A protocol is multiple agents.
+The define of initiative_index is hard code style, code impls, auto adjust according to specific metric, auto adjust leave to LLM.
 
+A paper may belongs to multiple areas or values, you need to give all belongs value. Here is the content:
+                    '''+'\n'+paper_data['title']+'\n'+paper_data['abstract']+'\n'+paper_data['introduction']+'\n'+paper_data['conclusions'])
+                    update_csv(csv_file_path, arxiv_id, "title", paper_data['title'])
+                    result = analysis(client,paper_data)
+                    update_csv(csv_file_path, arxiv_id, "position_index", result['position_index'])
+                    update_csv(csv_file_path, arxiv_id, "position_index_comments", result['position_index_comments'])
+                    update_csv(csv_file_path, arxiv_id, "initiative_index", result['initiative_index'])
+                    update_csv(csv_file_path, arxiv_id, "initiative_index_comments", result['initiative_index_comments'])
                 else:
                     print(f"解压论文 {arxiv_id} 失败")
 
