@@ -6,17 +6,19 @@ on:
   pull_request:
     branches: [ main, master ]
 
+# 必须添加 pages 写入权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# 允许一个并发部署
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -47,7 +49,7 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         path: ./arxiv-3d-visualization/build
-        
+
   deploy:
     environment:
       name: github-pages
