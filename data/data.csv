@@ -1,2 +1,2 @@
-arxiv_id,date,position_index,position_index_comments,initiative_index,initiative_index_comments,downloaded
-2201.11903,2022-01-28,,,,,True
+arxiv_id,date,title,position_index,position_index_comments,initiative_index,initiative_index_comments,downloaded
+2201.11903,2022-01-28,Chain-of-Thought Prompting Elicits Reasoning \\ in Large Language Models,,,,,True

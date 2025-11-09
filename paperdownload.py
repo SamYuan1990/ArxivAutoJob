@@ -9,6 +9,7 @@ from tqdm import tqdm
 import base64
 import arxiv
 from utils import update_csv
+from fetchlatexcontent import extract_latex_fields
 
 def ToBase64(file):
     with open(file, 'rb') as fileObj:
@@ -171,11 +172,16 @@ def download_arxiv_papers_from_csv(csv_file_path, output_base="data"):
                     # 更新CSV中的日期
                     if submission_date:
                         update_csv(csv_file_path, arxiv_id, "date", submission_date)
-                        update_csv(csv_file_path, arxiv_id, "downloaded", "True")
-                
+                        
+                    update_csv(csv_file_path, arxiv_id, "downloaded", "True")
+                    # 使用
+                    paper_data = extract_latex_fields("data/"+arxiv_id+"/content")
+                    print(paper_data)
+                    update_csv(csv_file_path, arxiv_id, "title", paper_data['title'])
+
                 else:
                     print(f"解压论文 {arxiv_id} 失败")
-                    
+
             else:
                 print(f"下载论文 {arxiv_id} 失败，状态码: {response.status_code}")
                 
@@ -184,65 +190,3 @@ def download_arxiv_papers_from_csv(csv_file_path, output_base="data"):
             continue
     
     print("所有论文处理完成！")
-
-def download_single_arxiv_paper(arxiv_id, output_base="data"):
-    """
-    下载单个arXiv论文
-    
-    :param arxiv_id: arXiv论文ID
-    :param output_base: 输出基础目录
-    """
-    # 创建论文专属目录
-    paper_dir = os.path.join(output_base, arxiv_id.replace('/', '-'))
-    make_dir_if_not_exist(paper_dir)
-    
-    try:
-        # 使用arxiv库获取论文信息
-        paper_info = get_paper_info_from_arxiv(arxiv_id)
-        
-        if paper_info:
-            title = paper_info['title'].replace(" ", "-").replace("/", "-").replace("\\", "-")
-            submission_date = paper_info['published']
-        else:
-            title = arxiv_id.replace('/', '-')
-            submission_date = None
-        
-        print(f"正在下载论文: {arxiv_id} - {title}")
-        
-        # 下载源代码
-        source_link = f"https://arxiv.org/e-print/{arxiv_id}"
-        response = requests.get(source_link, timeout=30)
-        
-        if response.status_code == 200:
-            # 保存tar.gz文件
-            tar_path = os.path.join(paper_dir, "source.tar.gz")
-            with open(tar_path, "wb") as f:
-                f.write(response.content)
-            
-            # 解压文件
-            extract_dir = os.path.join(paper_dir, "content")
-            make_dir_if_not_exist(extract_dir)
-            
-            if untar(tar_path, extract_dir):
-                print(f"成功下载并解压论文: {arxiv_id}")
-                
-                # 保存论文信息
-                info_file = os.path.join(paper_dir, "paper_info.txt")
-                with open(info_file, 'w', encoding='utf-8') as f:
-                    f.write(f"arXiv ID: {arxiv_id}\n")
-                    f.write(f"Title: {title}\n")
-                    f.write(f"Download Time: {datetime.datetime.now()}\n")
-                    if submission_date:
-                        f.write(f"First Submission Date: {submission_date}\n")
-                
-                return True, submission_date
-            else:
-                print(f"解压论文 {arxiv_id} 失败")
-                return False, None
-        else:
-            print(f"下载论文 {arxiv_id} 失败，状态码: {response.status_code}")
-            return False, None
-            
-    except Exception as e:
-        print(f"处理论文 {arxiv_id} 时出错: {e}")
-        return False, None
